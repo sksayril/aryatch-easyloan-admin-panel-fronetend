@@ -1,6 +1,6 @@
 // const API_BASE_URL = 'https://apiloantrix.seotube.in/api';
-const API_BASE_URL = 'https://7cvccltb-5010.inc1.devtunnels.ms/api';
-// const API_BASE_URL = 'https://apieasy.seotube.in/api';
+// const API_BASE_URL = 'https://7cvccltb-5010.inc1.devtunnels.ms/api';
+const API_BASE_URL = 'https://apieasy.seotube.in/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
