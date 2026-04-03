@@ -10,14 +10,49 @@ interface AdsSettings {
   nativeAdsEnabled: boolean;
   interstitialAdsEnabled: boolean;
   interracialAdsEnabled: boolean;
-  interstitialAdsShowCounter: 1 | 2 | 3 | 4;
+  interstitialAdsShowCounter: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   rewardedAdsEnabled: boolean;
   appOpenAdsEnabled: boolean;
+  bannerAdsId?: string;
+  nativeAdsId?: string;
+  interstitialAdsId?: string;
+  interracialAdsId?: string;
+  rewardedAdsId?: string;
+  appOpenAdsId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 type AdsSettingsForm = Omit<AdsSettings, '_id' | 'createdAt' | 'updatedAt'>;
+
+const emptyIdFields = {
+  bannerAdsId: '',
+  nativeAdsId: '',
+  interstitialAdsId: '',
+  interracialAdsId: '',
+  rewardedAdsId: '',
+  appOpenAdsId: '',
+};
+
+const mapIdsFromApi = (s: AdsSettings | Record<string, unknown>) => ({
+  bannerAdsId: (s.bannerAdsId as string | undefined) ?? '',
+  nativeAdsId: (s.nativeAdsId as string | undefined) ?? '',
+  interstitialAdsId: (s.interstitialAdsId as string | undefined) ?? '',
+  interracialAdsId: (s.interracialAdsId as string | undefined) ?? '',
+  rewardedAdsId: (s.rewardedAdsId as string | undefined) ?? '',
+  appOpenAdsId: (s.appOpenAdsId as string | undefined) ?? '',
+});
+
+const INTERSTITIAL_COUNTER_RANGE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+
+function normalizeInterstitialCounter(
+  value: unknown
+): AdsSettings['interstitialAdsShowCounter'] {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return 3;
+  const clamped = Math.min(10, Math.max(1, Math.round(n)));
+  return clamped as AdsSettings['interstitialAdsShowCounter'];
+}
 
 const AdsSettings = () => {
   const [settings, setSettings] = useState<AdsSettings | null>(null);
@@ -30,6 +65,7 @@ const AdsSettings = () => {
     interstitialAdsShowCounter: 3,
     rewardedAdsEnabled: true,
     appOpenAdsEnabled: false,
+    ...emptyIdFields,
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -52,9 +88,12 @@ const AdsSettings = () => {
           nativeAdsEnabled: data.adsSettings.nativeAdsEnabled,
           interstitialAdsEnabled: data.adsSettings.interstitialAdsEnabled,
           interracialAdsEnabled: data.adsSettings.interracialAdsEnabled,
-          interstitialAdsShowCounter: data.adsSettings.interstitialAdsShowCounter,
+          interstitialAdsShowCounter: normalizeInterstitialCounter(
+            data.adsSettings.interstitialAdsShowCounter
+          ),
           rewardedAdsEnabled: data.adsSettings.rewardedAdsEnabled,
           appOpenAdsEnabled: data.adsSettings.appOpenAdsEnabled,
+          ...mapIdsFromApi(data.adsSettings),
         });
       }
     } catch (err: any) {
@@ -64,7 +103,18 @@ const AdsSettings = () => {
     }
   };
 
-  const handleToggle = (key: keyof Omit<AdsSettingsForm, 'interstitialAdsShowCounter'>) => {
+  const handleToggle = (
+    key: keyof Pick<
+      AdsSettingsForm,
+      | 'allAdsEnabled'
+      | 'bannerAdsEnabled'
+      | 'nativeAdsEnabled'
+      | 'interstitialAdsEnabled'
+      | 'interracialAdsEnabled'
+      | 'rewardedAdsEnabled'
+      | 'appOpenAdsEnabled'
+    >
+  ) => {
     setFormData((prev) => {
       if (key === 'allAdsEnabled') {
         const nextValue = !prev.allAdsEnabled;
@@ -102,9 +152,12 @@ const AdsSettings = () => {
         nativeAdsEnabled: data.adsSettings.nativeAdsEnabled,
         interstitialAdsEnabled: data.adsSettings.interstitialAdsEnabled,
         interracialAdsEnabled: data.adsSettings.interracialAdsEnabled,
-        interstitialAdsShowCounter: data.adsSettings.interstitialAdsShowCounter,
+        interstitialAdsShowCounter: normalizeInterstitialCounter(
+          data.adsSettings.interstitialAdsShowCounter
+        ),
         rewardedAdsEnabled: data.adsSettings.rewardedAdsEnabled,
         appOpenAdsEnabled: data.adsSettings.appOpenAdsEnabled,
+        ...mapIdsFromApi(data.adsSettings),
       });
       setSuccess(data.message || 'Ads settings updated successfully');
       setTimeout(() => setSuccess(''), 3000);
@@ -184,16 +237,112 @@ const AdsSettings = () => {
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                interstitialAdsShowCounter: Number(e.target.value) as 1 | 2 | 3 | 4,
+                interstitialAdsShowCounter: normalizeInterstitialCounter(
+                  Number(e.target.value)
+                ),
               }))
             }
             className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value={1}>1</option>
-            <option value={2}>2</option>
-            <option value={3}>3</option>
-            <option value={4}>4</option>
+            {INTERSTITIAL_COUNTER_RANGE.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
           </select>
+        </div>
+
+        <div className="border-t border-gray-200 pt-6 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">AdMob / ad unit IDs</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Optional IDs sent to the API (e.g. ca-app-pub-…). Leave blank if not used.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Banner ads unit ID</label>
+              <input
+                type="text"
+                value={formData.bannerAdsId}
+                onChange={(e) => setFormData((prev) => ({ ...prev, bannerAdsId: e.target.value }))}
+                placeholder="ca-app-pub-xxxxxxxx/1111111111"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Native ads unit ID</label>
+              <input
+                type="text"
+                value={formData.nativeAdsId}
+                onChange={(e) => setFormData((prev) => ({ ...prev, nativeAdsId: e.target.value }))}
+                placeholder="ca-app-pub-xxxxxxxx/2222222222"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Interstitial ads unit ID
+              </label>
+              <input
+                type="text"
+                value={formData.interstitialAdsId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFormData((prev) => ({
+                    ...prev,
+                    interstitialAdsId: v,
+                    interracialAdsId: v,
+                  }));
+                }}
+                placeholder="ca-app-pub-xxxxxxxx/3333333333"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                autoComplete="off"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Also updates interracial alias ID to the same value (API compatibility).
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Interracial ads unit ID (alias)
+              </label>
+              <input
+                type="text"
+                value={formData.interracialAdsId}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, interracialAdsId: e.target.value }))
+                }
+                placeholder="Same as interstitial if your backend expects both"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rewarded ads unit ID</label>
+              <input
+                type="text"
+                value={formData.rewardedAdsId}
+                onChange={(e) => setFormData((prev) => ({ ...prev, rewardedAdsId: e.target.value }))}
+                placeholder="ca-app-pub-xxxxxxxx/4444444444"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">App open ads unit ID</label>
+              <input
+                type="text"
+                value={formData.appOpenAdsId}
+                onChange={(e) => setFormData((prev) => ({ ...prev, appOpenAdsId: e.target.value }))}
+                placeholder="ca-app-pub-xxxxxxxx/5555555555"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                autoComplete="off"
+              />
+            </div>
+          </div>
         </div>
 
         {settings && (

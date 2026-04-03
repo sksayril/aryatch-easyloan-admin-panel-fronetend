@@ -11,14 +11,15 @@ import {
   Menu,
   X,
   Flag,
-  Sparkles
+  Sparkles,
+  Smartphone
 } from 'lucide-react';
 import { useState } from 'react';
 
 interface LayoutProps {
   children: ReactNode;
-  currentPage: 'dashboard' | 'categories' | 'loans' | 'commodity-prices' | 'india-apply-now' | 'ads-settings';
-  onNavigate: (page: 'dashboard' | 'categories' | 'loans' | 'commodity-prices' | 'india-apply-now' | 'ads-settings') => void;
+  currentPage: 'dashboard' | 'categories' | 'loans' | 'commodity-prices' | 'india-apply-now' | 'ads-settings' | 'app-settings';
+  onNavigate: (page: 'dashboard' | 'categories' | 'loans' | 'commodity-prices' | 'india-apply-now' | 'ads-settings' | 'app-settings') => void;
 }
 
 const Layout = ({ children, currentPage, onNavigate }: LayoutProps) => {
@@ -31,6 +32,7 @@ const Layout = ({ children, currentPage, onNavigate }: LayoutProps) => {
     'commodity-prices': 'Commodity Prices',
     'india-apply-now': 'India Apply Now',
     'ads-settings': 'Ads Settings',
+    'app-settings': 'App Settings',
   };
 
   const menuItems = [
@@ -40,6 +42,7 @@ const Layout = ({ children, currentPage, onNavigate }: LayoutProps) => {
     { id: 'commodity-prices', label: 'Commodity Prices', icon: TrendingUp },
     { id: 'india-apply-now', label: 'India Apply Now', icon: Flag },
     { id: 'ads-settings', label: 'Ads Settings', icon: Settings2 },
+    { id: 'app-settings', label: 'App Settings', icon: Smartphone },
   ];
 
   return (

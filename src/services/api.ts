@@ -1,6 +1,6 @@
 // const API_BASE_URL = 'https://apiloantrix.seotube.in/api';
-// const API_BASE_URL = 'https://7cvccltb-5009.inc1.devtunnels.ms/api';
-const API_BASE_URL = 'https://apieasy.seotube.in/api';
+const API_BASE_URL = 'https://7cvccltb-5010.inc1.devtunnels.ms/api';
+// const API_BASE_URL = 'https://apieasy.seotube.in/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
@@ -403,9 +403,15 @@ type AdsSettingsPayload = {
   nativeAdsEnabled?: boolean;
   interstitialAdsEnabled?: boolean;
   interracialAdsEnabled?: boolean;
-  interstitialAdsShowCounter?: 1 | 2 | 3 | 4;
+  interstitialAdsShowCounter?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   rewardedAdsEnabled?: boolean;
   appOpenAdsEnabled?: boolean;
+  bannerAdsId?: string;
+  nativeAdsId?: string;
+  interstitialAdsId?: string;
+  interracialAdsId?: string;
+  rewardedAdsId?: string;
+  appOpenAdsId?: string;
 };
 
 export const adsSettingsApi = {
@@ -430,6 +436,39 @@ export const adsSettingsApi = {
         data?.message ||
         data?.errors?.[0]?.msg ||
         'Failed to update ads settings';
+      throw new Error(errorMessage);
+    }
+    return data;
+  },
+};
+
+type AppSettingsPayload = {
+  appUpdateRequired?: boolean;
+  appUrl?: string;
+};
+
+export const appSettingsApi = {
+  get: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/app-settings`, {
+      headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Failed to fetch app settings');
+    return data;
+  },
+
+  update: async (updates: AppSettingsPayload) => {
+    const response = await fetch(`${API_BASE_URL}/admin/app-settings`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const errorMessage =
+        data?.message ||
+        data?.errors?.[0]?.msg ||
+        'Failed to update app settings';
       throw new Error(errorMessage);
     }
     return data;
